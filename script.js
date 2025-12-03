@@ -12,6 +12,28 @@ const toast = document.getElementById('toast');
 
 let currentObjectUrl = null;
 
+// 입력값에서 파일명 생성 함수
+function generateFileName(originalFileName) {
+  const userName = document.getElementById('userName').value.trim();
+  const businessNumber = document.getElementById('businessNumber').value.trim();
+  const phoneNumber = document.getElementById('phoneNumber').value.trim();
+
+  // 입력값이 모두 있는 경우
+  if (userName && businessNumber && phoneNumber) {
+    // 파일 확장자 추출
+    const extension = originalFileName.split('.').pop() || 'jpg';
+    // 특수문자 제거 및 공백을 언더스코어로 변경
+    const cleanName = userName.replace(/[^\w가-힣]/g, '_');
+    const cleanBusiness = businessNumber.replace(/[^\w]/g, '_');
+    const cleanPhone = phoneNumber.replace(/[^\w]/g, '_');
+    
+    return `${cleanName}_${cleanBusiness}_${cleanPhone}.${extension}`;
+  }
+
+  // 입력값이 없는 경우 원본 파일명 사용
+  return originalFileName || `image_${Date.now()}.jpg`;
+}
+
 function showToast(message) {
   toast.textContent = message;
   toast.classList.add('show');
@@ -60,6 +82,8 @@ function resetPreview() {
   uploadArea.classList.remove('has-file');
   fileInput.value = '';
   deleteButton.disabled = true;
+  
+  // 입력 필드는 초기화하지 않음 (사용자가 다시 입력할 필요 없도록)
 }
 
 async function uploadToDrive(file) {
@@ -80,8 +104,9 @@ async function uploadToDrive(file) {
           return;
         }
 
-        // 파일명이 없으면 생성 (모바일 촬영 시 파일명이 없을 수 있음)
-        const fileName = file.name || `image_${Date.now()}.jpg`;
+        // 입력값을 기반으로 파일명 생성
+        const originalFileName = file.name || `image_${Date.now()}.jpg`;
+        const fileName = generateFileName(originalFileName);
         const mimeType = file.type || 'image/jpeg';
 
         console.log('업로드 시작:', {
@@ -242,6 +267,29 @@ fileInput.addEventListener('change', () => {
 uploadForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   clearError();
+
+  // 입력값 검증
+  const userName = document.getElementById('userName').value.trim();
+  const businessNumber = document.getElementById('businessNumber').value.trim();
+  const phoneNumber = document.getElementById('phoneNumber').value.trim();
+
+  if (!userName) {
+    setError('이름을 입력해 주세요.');
+    document.getElementById('userName').focus();
+    return;
+  }
+
+  if (!businessNumber) {
+    setError('사업자 번호를 입력해 주세요.');
+    document.getElementById('businessNumber').focus();
+    return;
+  }
+
+  if (!phoneNumber) {
+    setError('전화번호를 입력해 주세요.');
+    document.getElementById('phoneNumber').focus();
+    return;
+  }
 
   const file = fileInput.files && fileInput.files[0];
 
