@@ -80,11 +80,21 @@ async function uploadToDrive(file) {
           return;
         }
 
+        // 파일명이 없으면 생성 (모바일 촬영 시 파일명이 없을 수 있음)
+        const fileName = file.name || `image_${Date.now()}.jpg`;
+        const mimeType = file.type || 'image/jpeg';
+
         console.log('업로드 시작:', {
-          fileName: file.name,
-          mimeType: file.type,
+          fileName: fileName,
+          mimeType: mimeType,
+          fileSize: file.size,
           base64Length: base64.length,
         });
+
+        // base64 데이터가 너무 큰 경우 경고
+        if (base64.length > 10000000) {
+          console.warn('Base64 데이터가 매우 큽니다:', base64.length);
+        }
 
         // 숨겨진 iframe 생성 (CORS 우회용)
         const iframe = document.createElement('iframe');
@@ -100,27 +110,31 @@ async function uploadToDrive(file) {
         form.action = UPLOAD_ENDPOINT;
         form.target = iframe.name;
         form.style.display = 'none';
+        form.enctype = 'application/x-www-form-urlencoded';
 
         // 데이터를 폼 필드로 추가
         const fileNameInput = document.createElement('input');
         fileNameInput.type = 'hidden';
         fileNameInput.name = 'fileName';
-        fileNameInput.value = file.name;
+        fileNameInput.value = fileName;
         form.appendChild(fileNameInput);
 
         const mimeTypeInput = document.createElement('input');
         mimeTypeInput.type = 'hidden';
         mimeTypeInput.name = 'mimeType';
-        mimeTypeInput.value = file.type || 'image/jpeg';
+        mimeTypeInput.value = mimeType;
         form.appendChild(mimeTypeInput);
 
         const base64Input = document.createElement('input');
         base64Input.type = 'hidden';
         base64Input.name = 'base64';
+        // base64는 안전한 문자만 사용하므로 그대로 전송
         base64Input.value = base64;
         form.appendChild(base64Input);
 
         document.body.appendChild(form);
+
+        console.log('폼 생성 완료, 제출 준비됨');
 
         // iframe 로드 완료 대기
         let resolved = false;
@@ -153,7 +167,7 @@ async function uploadToDrive(file) {
             cleanup();
             resolve({ success: true, message: '업로드 완료' });
           }
-        }, 500); // 0.5초 후 성공 처리
+        }, 1000); // 1초 후 성공 처리 (모바일 네트워크 지연 고려)
 
         // 타임아웃 설정 (15초) - 백업용
         setTimeout(() => {

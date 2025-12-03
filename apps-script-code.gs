@@ -29,6 +29,9 @@ function doPost(e) {
       base64 = e.parameter.base64;
       fileName = e.parameter.fileName || 'upload_' + new Date().getTime() + '.jpg';
       mimeType = e.parameter.mimeType || 'image/jpeg';
+      
+      // 로깅 (디버깅용)
+      Logger.log('폼 데이터 수신: fileName=' + fileName + ', mimeType=' + mimeType + ', base64Length=' + (base64 ? base64.length : 0));
     } else if (e.postData && e.postData.contents) {
       // JSON으로 전송된 경우
       let data;
