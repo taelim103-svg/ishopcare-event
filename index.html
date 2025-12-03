@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>아이샵케어 5차 이벤트</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="card">
+        <header class="card-header">
+          <h1 class="title">아이샵케어 5차 이벤트</h1>
+          <p class="subtitle">신분증 이미지를 업로드해 주세요.</p>
+        </header>
+
+        <form class="upload-form" id="uploadForm">
+          <label for="idImage" class="upload-area" id="uploadArea">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">
+              <span class="upload-main">신분증 사진 선택</span>
+              <span class="upload-sub">터치해서 사진을 선택하거나 촬영하세요.</span>
+            </div>
+            <input
+              type="file"
+              id="idImage"
+              accept="image/*"
+              capture="environment"
+            />
+          </label>
+
+          <div class="button-row">
+            <button type="button" class="delete-button" id="deleteButton" disabled>
+              삭제
+            </button>
+            <button type="submit" class="submit-button" id="submitButton">
+              제출하기
+            </button>
+          </div>
+        </form>
+
+        <section class="preview" id="previewSection" aria-hidden="true">
+          <h2 class="preview-title">제출된 이미지</h2>
+          <div class="preview-image-wrap">
+            <img id="previewImage" alt="제출된 신분증 이미지 미리보기" />
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">
+      제출이 완료되었습니다.
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+  </html>
+
+

@@ -1,0 +1,11 @@
+# Netlify 배포 설정
+[build]
+  # 빌드 명령어 없음 (정적 파일만 배포)
+  publish = "."
+
+[[redirects]]
+  # 모든 경로를 index.html로 리다이렉트 (SPA 지원)
+  from = "/*"
+  to = "/index.html"
+  status = 200
+

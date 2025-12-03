@@ -1,0 +1,19 @@
+# 운영체제 파일
+.DS_Store
+Thumbs.db
+
+# 에디터 파일
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 로그 파일
+*.log
+npm-debug.log*
+
+# 임시 파일
+*.tmp
+*.temp
+
