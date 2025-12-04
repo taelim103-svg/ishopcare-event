@@ -32,7 +32,8 @@
               type="text"
               id="businessNumber"
               class="input-field"
-              placeholder="사업자 번호를 입력하세요"
+              placeholder="000-00-00000"
+              maxlength="12"
               required
             />
           </div>
@@ -43,23 +44,40 @@
               type="tel"
               id="phoneNumber"
               class="input-field"
-              placeholder="전화번호를 입력하세요"
+              placeholder="000-0000-0000"
+              maxlength="13"
               required
             />
           </div>
 
-          <label for="idImage" class="upload-area" id="uploadArea">
-            <div class="upload-icon">📷</div>
-            <div class="upload-text">
-              <span class="upload-main">신분증 사진 선택</span>
-              <span class="upload-sub">터치해서 사진을 선택하거나 촬영하세요.</span>
-            </div>
-            <input
-              type="file"
-              id="idImage"
-              accept="image/*"
-            />
-          </label>
+          <div class="upload-options">
+            <label for="idImage" class="upload-area" id="uploadArea">
+              <div class="upload-icon">📁</div>
+              <div class="upload-text">
+                <span class="upload-main">신분증 사진 선택</span>
+                <span class="upload-sub">갤러리에서 사진 선택</span>
+              </div>
+              <input
+                type="file"
+                id="idImage"
+                accept="image/*"
+              />
+            </label>
+
+            <label for="idImageCapture" class="upload-area upload-area-capture" id="uploadAreaCapture">
+              <div class="upload-icon">📷</div>
+              <div class="upload-text">
+                <span class="upload-main">신분증 사진 촬영</span>
+                <span class="upload-sub">카메라로 바로 촬영</span>
+              </div>
+              <input
+                type="file"
+                id="idImageCapture"
+                accept="image/*"
+                capture="environment"
+              />
+            </label>
+          </div>
 
           <div class="button-row">
             <button type="button" class="delete-button" id="deleteButton" disabled>

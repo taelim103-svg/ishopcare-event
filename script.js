@@ -3,20 +3,61 @@ const UPLOAD_ENDPOINT = 'https://script.google.com/a/macros/ishopcare.co.kr/s/AK
 
 const uploadForm = document.getElementById('uploadForm');
 const fileInput = document.getElementById('idImage');
+const fileInputCapture = document.getElementById('idImageCapture');
 const uploadArea = document.getElementById('uploadArea');
+const uploadAreaCapture = document.getElementById('uploadAreaCapture');
 const submitButton = document.getElementById('submitButton');
 const deleteButton = document.getElementById('deleteButton');
 const previewSection = document.getElementById('previewSection');
 const previewImage = document.getElementById('previewImage');
 const toast = document.getElementById('toast');
+const businessNumberInput = document.getElementById('businessNumber');
+const phoneNumberInput = document.getElementById('phoneNumber');
 
 let currentObjectUrl = null;
+let currentFile = null;
+
+// 사업자 번호 자동 포맷팅 (000-00-00000)
+function formatBusinessNumber(value) {
+  // 숫자만 추출
+  const numbers = value.replace(/[^\d]/g, '');
+  
+  // 최대 10자리까지만
+  const limited = numbers.slice(0, 10);
+  
+  // 포맷팅
+  if (limited.length <= 3) {
+    return limited;
+  } else if (limited.length <= 5) {
+    return `${limited.slice(0, 3)}-${limited.slice(3)}`;
+  } else {
+    return `${limited.slice(0, 3)}-${limited.slice(3, 5)}-${limited.slice(5)}`;
+  }
+}
+
+// 전화번호 자동 포맷팅 (000-0000-0000)
+function formatPhoneNumber(value) {
+  // 숫자만 추출
+  const numbers = value.replace(/[^\d]/g, '');
+  
+  // 최대 11자리까지만
+  const limited = numbers.slice(0, 11);
+  
+  // 포맷팅
+  if (limited.length <= 3) {
+    return limited;
+  } else if (limited.length <= 7) {
+    return `${limited.slice(0, 3)}-${limited.slice(3)}`;
+  } else {
+    return `${limited.slice(0, 3)}-${limited.slice(3, 7)}-${limited.slice(7)}`;
+  }
+}
 
 // 입력값에서 파일명 생성 함수
 function generateFileName(originalFileName) {
   const userName = document.getElementById('userName').value.trim();
-  const businessNumber = document.getElementById('businessNumber').value.trim();
-  const phoneNumber = document.getElementById('phoneNumber').value.trim();
+  const businessNumber = document.getElementById('businessNumber').value.trim().replace(/[^\d]/g, '');
+  const phoneNumber = document.getElementById('phoneNumber').value.trim().replace(/[^\d]/g, '');
 
   // 입력값이 모두 있는 경우
   if (userName && businessNumber && phoneNumber) {
@@ -24,8 +65,9 @@ function generateFileName(originalFileName) {
     const extension = originalFileName.split('.').pop() || 'jpg';
     // 특수문자 제거 및 공백을 언더스코어로 변경
     const cleanName = userName.replace(/[^\w가-힣]/g, '_');
-    const cleanBusiness = businessNumber.replace(/[^\w]/g, '_');
-    const cleanPhone = phoneNumber.replace(/[^\w]/g, '_');
+    // 숫자만 사용 (하이픈 제거된 상태)
+    const cleanBusiness = businessNumber;
+    const cleanPhone = phoneNumber;
     
     return `${cleanName}_${cleanBusiness}_${cleanPhone}.${extension}`;
   }
@@ -80,7 +122,10 @@ function resetPreview() {
   previewSection.classList.remove('visible');
   previewSection.setAttribute('aria-hidden', 'true');
   uploadArea.classList.remove('has-file');
+  uploadAreaCapture.classList.remove('has-file');
   fileInput.value = '';
+  fileInputCapture.value = '';
+  currentFile = null;
   deleteButton.disabled = true;
   
   // 입력 필드는 초기화하지 않음 (사용자가 다시 입력할 필요 없도록)
@@ -221,24 +266,38 @@ async function uploadToDrive(file) {
   });
 }
 
-fileInput.addEventListener('change', () => {
+// 파일 선택 처리 공통 함수
+function handleFileSelect(file, sourceInput) {
   clearError();
-  const file = fileInput.files && fileInput.files[0];
   if (!file) return;
 
   if (!file.type.startsWith('image/')) {
     setError('이미지 파일만 업로드할 수 있습니다.');
     fileInput.value = '';
+    fileInputCapture.value = '';
     return;
   }
 
   if (file.size > 8 * 1024 * 1024) {
     setError('이미지 용량은 최대 8MB까지 가능합니다.');
     fileInput.value = '';
+    fileInputCapture.value = '';
     return;
   }
 
+  // 현재 파일 저장
+  currentFile = file;
+
+  // 두 업로드 영역 모두 활성화 표시
   uploadArea.classList.add('has-file');
+  uploadAreaCapture.classList.add('has-file');
+
+  // 다른 input 초기화
+  if (sourceInput === fileInput) {
+    fileInputCapture.value = '';
+  } else {
+    fileInput.value = '';
+  }
 
   // 업로드(선택) 즉시 미리보기 표시
   if (currentObjectUrl) {
@@ -262,6 +321,16 @@ fileInput.addEventListener('change', () => {
   previewSection.classList.add('visible');
   previewSection.setAttribute('aria-hidden', 'false');
   deleteButton.disabled = false;
+}
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files && fileInput.files[0];
+  handleFileSelect(file, fileInput);
+});
+
+fileInputCapture.addEventListener('change', () => {
+  const file = fileInputCapture.files && fileInputCapture.files[0];
+  handleFileSelect(file, fileInputCapture);
 });
 
 uploadForm.addEventListener('submit', async (event) => {
@@ -270,8 +339,8 @@ uploadForm.addEventListener('submit', async (event) => {
 
   // 입력값 검증
   const userName = document.getElementById('userName').value.trim();
-  const businessNumber = document.getElementById('businessNumber').value.trim();
-  const phoneNumber = document.getElementById('phoneNumber').value.trim();
+  const businessNumber = document.getElementById('businessNumber').value.trim().replace(/[^\d]/g, '');
+  const phoneNumber = document.getElementById('phoneNumber').value.trim().replace(/[^\d]/g, '');
 
   if (!userName) {
     setError('이름을 입력해 주세요.');
@@ -279,25 +348,25 @@ uploadForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  if (!businessNumber) {
-    setError('사업자 번호를 입력해 주세요.');
+  if (!businessNumber || businessNumber.length !== 10) {
+    setError('사업자 번호를 올바르게 입력해 주세요. (10자리 숫자)');
     document.getElementById('businessNumber').focus();
     return;
   }
 
-  if (!phoneNumber) {
-    setError('전화번호를 입력해 주세요.');
+  if (!phoneNumber || phoneNumber.length < 10 || phoneNumber.length > 11) {
+    setError('전화번호를 올바르게 입력해 주세요. (10~11자리 숫자)');
     document.getElementById('phoneNumber').focus();
     return;
   }
 
-  const file = fileInput.files && fileInput.files[0];
-
-  if (!file) {
-    setError('신분증 이미지를 선택해 주세요.');
-    fileInput.focus();
+  // 파일 검증 - currentFile 사용
+  if (!currentFile) {
+    setError('신분증 이미지를 선택하거나 촬영해 주세요.');
     return;
   }
+
+  const file = currentFile;
 
   if (!file.type.startsWith('image/')) {
     setError('이미지 파일만 업로드할 수 있습니다.');
@@ -324,6 +393,32 @@ uploadForm.addEventListener('submit', async (event) => {
 
 deleteButton.addEventListener('click', () => {
   resetPreview();
+});
+
+// 사업자 번호 자동 포맷팅
+businessNumberInput.addEventListener('input', (e) => {
+  const formatted = formatBusinessNumber(e.target.value);
+  e.target.value = formatted;
+});
+
+businessNumberInput.addEventListener('keydown', (e) => {
+  // 숫자, 백스페이스, 삭제, 탭, 화살표 키만 허용
+  if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && !(e.ctrlKey && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase()))) {
+    e.preventDefault();
+  }
+});
+
+// 전화번호 자동 포맷팅
+phoneNumberInput.addEventListener('input', (e) => {
+  const formatted = formatPhoneNumber(e.target.value);
+  e.target.value = formatted;
+});
+
+phoneNumberInput.addEventListener('keydown', (e) => {
+  // 숫자, 백스페이스, 삭제, 탭, 화살표 키만 허용
+  if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && !(e.ctrlKey && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase()))) {
+    e.preventDefault();
+  }
 });
 
 

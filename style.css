@@ -73,6 +73,12 @@ body {
   gap: 12px;
 }
 
+.upload-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .input-group {
   display: flex;
   flex-direction: column;
@@ -146,6 +152,23 @@ body {
   display: none;
 }
 
+.upload-area-capture {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.08),
+    rgba(16, 185, 129, 0.04)
+  );
+}
+
+.upload-area-capture:hover {
+  border-color: #22c55e;
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.12),
+    rgba(16, 185, 129, 0.06)
+  );
+}
+
 .upload-icon {
   width: 44px;
   height: 44px;
@@ -158,6 +181,11 @@ body {
   font-size: 1.25rem;
   flex-shrink: 0;
   box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
+}
+
+.upload-area-capture .upload-icon {
+  background: radial-gradient(circle at 10% 0, #86efac 0, #22c55e 45%, #16a34a 100%);
+  box-shadow: 0 8px 18px rgba(34, 197, 94, 0.35);
 }
 
 .upload-text {
